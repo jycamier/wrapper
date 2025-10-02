@@ -40,9 +40,22 @@ $HOME/.config/wrapper/
 
 ## Installation
 
+### Homebrew
+
 ```bash
-go install github.com/jycamier/wrapper@latest
+brew tap jycamier/homebrew-tap
+brew install wrapper
 ```
+
+### Docker
+
+```bash
+docker run --rm ghcr.io/jycamier/wrapper:latest version
+```
+
+### Manual
+
+Check out the [releases](https://github.com/jycamier/wrapper/releases) page.
 
 ## Quick Start
 
@@ -132,34 +145,6 @@ wrapper <binary> profile create <name>
 # Set current profile
 wrapper <binary> profile set <name>
 ```
-
-### Execute with Profile
-
-Any command that is NOT `profile` will execute the real binary with the active profile's environment:
-
-```bash
-vault login
-aws s3 ls
-kubectl get pods
-```
-
-## How It Works
-
-1. **Wrapper Detection**: Determines the binary name from how it was invoked
-2. **Command Routing**:
-   - If command is `profile` → manage profiles
-   - Otherwise → execute real binary
-3. **Profile Loading**: Loads environment from `current.env` (or default profile)
-4. **Binary Execution**: Finds real binary in PATH and executes with loaded environment
-
-## Architecture
-
-Wrapper follows **Domain-Driven Design (DDD)** with clean architecture:
-
-- **Domain Layer**: Core business logic (Profile, Repository interfaces)
-- **Application Layer**: Use cases (ProfileService, ExecutorService)
-- **Infrastructure Layer**: Filesystem storage, binary resolution
-- **Presentation Layer**: CLI commands
 
 ## License
 
