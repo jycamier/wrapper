@@ -31,6 +31,8 @@ This project follows **Domain-Driven Design (DDD)** principles with clean archit
 
 4. **Presentation Layer** (`cmd/`)
    - `root.go` - Root command, binary name management, dependency setup, unknown command fallback
+   - `list_binaries.go` - List all configured binaries
+   - `alias.go` - Generate shell alias files (bash, zsh, fish)
    - `profile.go` - Profile parent command
    - `create.go`, `list.go`, `set.go`, `get.go`, `default.go` - Profile subcommands
    - Uses Cobra command structure with standard init() registration
@@ -38,14 +40,18 @@ This project follows **Domain-Driven Design (DDD)** principles with clean archit
 ### Command Hierarchy
 
 ```
-wrapper <binary> [command]
-├── profile                    # Profile management (cmd/profile.go)
-│   ├── create <name>         # Create profile (cmd/create.go)
-│   ├── list                  # List profiles (cmd/list.go)
-│   ├── set <name>            # Set current (cmd/set.go)
-│   ├── get                   # Get current (cmd/get.go)
-│   └── default <name>        # Set default (cmd/default.go)
-└── <any other command>       # Execute real binary via fallback
+wrapper
+├── list                      # List configured binaries (cmd/list_binaries.go)
+├── alias                     # Generate shell aliases (cmd/alias.go)
+├── <binary>                  # Binary-specific commands
+│   ├── profile               # Profile management (cmd/profile.go)
+│   │   ├── create <name>    # Create profile (cmd/create.go)
+│   │   ├── list             # List profiles (cmd/list.go)
+│   │   ├── set <name>       # Set current (cmd/set.go)
+│   │   ├── get              # Get current (cmd/get.go)
+│   │   └── default <name>   # Set default (cmd/default.go)
+│   └── <any other command>  # Execute real binary via fallback
+└── completion                # Shell completion (Cobra built-in)
 ```
 
 ### Key Design Patterns
@@ -128,19 +134,26 @@ go mod tidy
 
 ```bash
 # Create a profile
-vault profile create prod
+wrapper vault profile create prod
 
 # Edit profile (manually)
 # Edit ~/.config/wrapper/vault/prod.env
 # Add: VAULT_ADDR=https://vault.example.com
 
 # Set current profile
-vault profile set prod
+wrapper vault profile set prod
 
-# Execute with profile
+# Generate shell aliases
+wrapper alias
+# Then add to your ~/.zshrc: source ~/.config/wrapper/aliases.zsh
+
+# After sourcing aliases, use directly:
 vault status  # Runs /usr/bin/vault with prod environment
 
-# List profiles
+# List all configured binaries
+wrapper list
+
+# List profiles for a specific binary
 vault profile list
 
 # Set default profile

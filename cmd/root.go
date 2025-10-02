@@ -53,7 +53,7 @@ Example:
 
 // isWrapperCommand checks if the argument is a known wrapper command
 func isWrapperCommand(arg string) bool {
-	wrapperCommands := []string{"list", "help", "--help", "-h", "completion"}
+	wrapperCommands := []string{"list", "alias", "version", "help", "--help", "-h", "completion"}
 	for _, cmd := range wrapperCommands {
 		if arg == cmd {
 			return true

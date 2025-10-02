@@ -7,7 +7,18 @@ import (
 	"github.com/jycamier/wrapper/cmd"
 )
 
+var (
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
+)
+
 func main() {
+	// Set version info in cmd package
+	cmd.Version = version
+	cmd.Commit = commit
+	cmd.Date = date
+
 	// Determine binary name from how wrapper was invoked
 	binaryName := filepath.Base(os.Args[0])
 

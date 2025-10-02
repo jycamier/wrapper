@@ -26,23 +26,38 @@ go build -o wrapper .
 
 ## Quick Start
 
-### 1. Create a shell function
-
-Add to your `.bashrc` or `.zshrc`:
+### 1. Create a profile
 
 ```bash
-vault() { wrapper vault "$@"; }
-aws() { wrapper aws "$@"; }
-kubectl() { wrapper kubectl "$@"; }
+wrapper vault profile create prod
 ```
 
-### 2. Create a profile
+### 2. Generate shell aliases
 
 ```bash
-vault profile create prod
+wrapper alias
 ```
 
-### 3. Edit the profile
+This creates alias files in `~/.config/wrapper/` for bash, zsh, and fish.
+
+### 3. Load the aliases
+
+Add to your shell config:
+
+```bash
+# Bash (~/.bashrc)
+source ~/.config/wrapper/aliases.bash
+
+# Zsh (~/.zshrc)
+source ~/.config/wrapper/aliases.zsh
+
+# Fish (~/.config/fish/config.fish)
+source ~/.config/wrapper/aliases.fish
+```
+
+Restart your shell or source the config file.
+
+### 4. Edit the profile
 
 Edit `~/.config/wrapper/vault/prod.env`:
 
@@ -52,13 +67,13 @@ VAULT_NAMESPACE=admin
 VAULT_TOKEN=your-token
 ```
 
-### 4. Set the profile
+### 5. Set the profile
 
 ```bash
 vault profile set prod
 ```
 
-### 5. Use it!
+### 6. Use it!
 
 ```bash
 vault status
@@ -67,10 +82,20 @@ vault status
 
 ## Usage
 
+### Wrapper Commands
+
+```bash
+# List all configured binaries
+wrapper list
+
+# Generate shell alias files
+wrapper alias
+```
+
 ### Profile Commands
 
 ```bash
-# List profiles
+# List profiles for a binary
 <binary> profile list
 
 # Create a new profile
