@@ -8,7 +8,7 @@ Wrapper is a Go CLI application that manages configuration profiles for any bina
 
 ## Architecture
 
-This project follows **Domain-Driven Design (DDD)** principles with clean architecture:
+This project follows **Domain-Driven Design (DDD)** principles with clean architecture and Cobra CLI framework:
 
 ### DDD Layers
 
@@ -29,37 +29,60 @@ This project follows **Domain-Driven Design (DDD)** principles with clean archit
    - `path_binary_resolver.go` - Binary resolution from PATH (excluding wrapper itself)
    - Concrete implementations of domain interfaces
 
-4. **Presentation Layer** (`internal/presentation/`)
-   - `profile_commands.go` - CLI commands for profile management
-   - `executor_commands.go` - Binary execution entry point
-   - `usage.go` - Help/usage display
-   - `setup.go` - Dependency injection setup
-   - CLI interface using Cobra
+4. **Presentation Layer** (`cmd/`)
+   - `root.go` - Root command, binary name management, dependency setup, unknown command fallback
+   - `profile.go` - Profile parent command
+   - `create.go`, `list.go`, `set.go`, `get.go`, `default.go` - Profile subcommands
+   - Uses Cobra command structure with standard init() registration
+
+### Command Hierarchy
+
+```
+wrapper <binary> [command]
+├── profile                    # Profile management (cmd/profile.go)
+│   ├── create <name>         # Create profile (cmd/create.go)
+│   ├── list                  # List profiles (cmd/list.go)
+│   ├── set <name>            # Set current (cmd/set.go)
+│   ├── get                   # Get current (cmd/get.go)
+│   └── default <name>        # Set default (cmd/default.go)
+└── <any other command>       # Execute real binary via fallback
+```
 
 ### Key Design Patterns
 
 - **Repository Pattern**: Abstract persistence via ProfileRepository interface
-- **Dependency Injection**: Dependencies configured in presentation/setup.go
-- **Command Pattern**: Profile operations as distinct commands
+- **Dependency Injection**: Dependencies setup in cmd/root.go helper functions
+- **Command Pattern**: Cobra commands with init() registration
 - **Strategy Pattern**: BinaryResolver for different resolution strategies
 
 ### How It Works
 
-1. **Invocation Detection** (main.go:11-24)
-   - If invoked as `wrapper <binary>` → extract binary name
-   - If invoked via symlink/alias → use executable name as binary name
+1. **Invocation Detection** (main.go:11-18)
+   - If invoked as `wrapper` → Use cmd.Execute() (standard Cobra)
+   - If invoked via symlink/alias → Use cmd.ExecuteWithBinary()
 
-2. **Command Routing** (main.go:26-34)
-   - `profile` command → Profile management (presentation/profile_commands.go)
-   - Any other command → Execute real binary (presentation/executor_commands.go)
+2. **Command Routing** (main.go:20-22)
+   - All args passed to Cobra for routing
+   - `profile` command → Cobra profile command tree
+   - Unknown commands → Caught by error handler and executed as binary
 
-3. **Profile Storage**
+3. **Binary Name Management** (cmd/root.go:56-60)
+   - Extracted from first argument when called as `wrapper <binary>`
+   - Passed via ExecuteWithBinary() when called via alias
+   - Accessed via GetBinaryName() by all commands
+
+4. **Unknown Command Fallback** (cmd/root.go:63-85)
+   - Cobra executes and catches "unknown command" errors
+   - Falls back to executing the real binary with all args
+   - Preserves exit codes and stdio
+
+5. **Profile Storage**
    - Location: `~/.config/wrapper/<binary>/`
    - Format: `.env` files (KEY=VALUE)
    - Current profile: `current.env` symlink
    - Default profile: `.default` file containing profile name
 
-4. **Binary Resolution** (infrastructure/path_binary_resolver.go)
+6. **Binary Resolution** (infrastructure/path_binary_resolver.go)
    - Searches PATH for real binary
    - Excludes wrapper itself by comparing resolved paths
    - Returns first matching executable
