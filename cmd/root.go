@@ -51,10 +51,22 @@ Example:
 	},
 }
 
+// isWrapperCommand checks if the argument is a known wrapper command
+func isWrapperCommand(arg string) bool {
+	wrapperCommands := []string{"list", "help", "--help", "-h", "completion"}
+	for _, cmd := range wrapperCommands {
+		if arg == cmd {
+			return true
+		}
+	}
+	return false
+}
+
 // Execute adds all child commands to the root command and sets flags appropriately.
 func Execute() {
 	// Determine binary name from invocation
-	if len(os.Args) >= 2 && os.Args[1] != "help" && os.Args[1] != "--help" && os.Args[1] != "-h" {
+	// Skip if first arg is a wrapper command
+	if len(os.Args) >= 2 && !isWrapperCommand(os.Args[1]) {
 		binaryName = os.Args[1]
 		// Remove binary name from args for cobra parsing
 		os.Args = append(os.Args[:1], os.Args[2:]...)
