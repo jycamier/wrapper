@@ -1,0 +1,108 @@
+version: 2
+project_name: wrapper
+
+before:
+  hooks:
+    - go mod tidy
+    - go mod download
+
+builds:
+  - id: wrapper
+    binary: wrapper
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+      - arm
+    goarm:
+      - 6
+      - 7
+    ignore:
+      - goos: windows
+        goarch: arm
+      - goos: windows
+        goarch: arm64
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+
+archives:
+  - id: wrapper
+    format: tar.gz
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - LICENSE
+      - README.md
+
+checksum:
+  name_template: 'checksums.txt'
+
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore:'
+      - '^ci:'
+      - 'README'
+      - 'typo'
+
+release:
+  github:
+    owner: jycamier
+    name: wrapper
+  draft: false
+  prerelease: auto
+  mode: replace
+  name_template: "{{.ProjectName}}-v{{.Version}}"
+
+kos:
+  - repository: ghcr.io/jycamier/wrapper
+    tags:
+      - '{{.Version}}'
+      - latest
+    bare: true
+    preserve_import_paths: false
+    platforms:
+      - linux/amd64
+      - linux/arm64
+
+metadata:
+  mod_timestamp: "{{ .CommitTimestamp }}"
+
+brews:
+  - name: wrapper
+    repository:
+      owner: jycamier
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    homepage: https://github.com/jycamier/wrapper
+    description: Configuration profile manager for any CLI binary
+    license: Apache-2.0
+    install: |
+      bin.install "wrapper"
+    test: |
+      system "#{bin}/wrapper version"
+    commit_author:
+      name: goreleaserbot
+      email: goreleaser@users.noreply.github.com

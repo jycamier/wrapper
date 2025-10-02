@@ -31,3 +31,11 @@ Thumbs.db
 # Go cache
 .gocache/
 .gomodcache/
+
+# GoReleaser
+dist/
+*.tar.gz
+*.zip
+
+# Release artifacts
+checksums.txt
