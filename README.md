@@ -146,6 +146,28 @@ wrapper <binary> profile create <name>
 wrapper <binary> profile set <name>
 ```
 
+## FAQ
+
+### How to managed vault token by wrapper?
+It's possible to create a token contextualized to a profile. 
+You need to create a `token_helper` like [this one](https://gist.github.com/jycamier/0e8e03526d31a4bbcdbdaa4f48ca630e), which is
+a way to customize the token storage.
+
+So, you can create this token helper:
+```bash
+curl https://gist.githubusercontent.com/jycamier/0e8e03526d31a4bbcdbdaa4f48ca630e/raw/21634540afb97d0cf9e5bcd7f8ffe9c6728e6ba0/.vault-token-helper.sh > $HOME/.vault-token-helper.sh
+echo "token_helper = \"$(echo $HOME)/.vault-token-helper.sh\"" >> ${HOME}/.vault
+```
+
+Then you can set a `VAULT_ENV` in your profile to stock the token in a dedicated file.. 
+
+```env
+VAULT_ADDR=https://vault.staging.exemple.com
+VAULT_NAMESPACE=admin
+VAULT_ENV=staging
+```
+
+
 ## License
 
 See [LICENSE](./LICENSE) file.
